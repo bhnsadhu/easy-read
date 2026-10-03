@@ -60,11 +60,16 @@ describe("built-in adapter", () => {
   it("splits relative and participial clauses into their own sentences", () => {
     expect(simplifySentence("Chlorophyll absorbs blue and red light, and reflects green light, making the plant appear green.", "simple")).toEqual([
       "Chlorophyll absorbs blue and red light.",
-      "Then bounces back green light.",
+      "It also bounces back green light.",
       "This makes the plant appear green.",
     ]);
     expect(simplifySentence("The reaction needs sunlight, hence the name light-dependent reaction.", "medium")).toEqual([
-      "The reaction needs sunlight, that is why it is called light-dependent reaction.",
+      "The reaction needs sunlight.",
+      "That is why it is called light-dependent reaction.",
+    ]);
+    expect(simplifySentence("Inside the cell are small organelles called chloroplasts, which store the energy of sunlight.", "simple")).toEqual([
+      "Inside the cell are small organelles called chloroplasts.",
+      "These store the energy of sunlight.",
     ]);
     for (const s of simplifySentence("The light-dependent reaction takes place within the thylakoid membrane and requires a steady stream of sunlight, which is converted into chemical energy in the form of the molecules ATP and NADPH.", "simple")) {
       expect(s).toMatch(/^[A-Z].*\.$/);

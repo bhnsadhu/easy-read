@@ -143,7 +143,7 @@ const PHRASES: [RegExp, string][] = [
   [/\bin addition,/gi, "Also,"],
   [/\bon the other hand,/gi, "But"],
   [/\bfor example,/gi, "For example,"],
-  [/\bhence the name\b/gi, "that is why it is called"],
+  [/,?\s*\bhence the name\b/gi, ". That is why it is called"],
   [/\bknown as\b/gi, "called"],
   [/\breferred to as\b/gi, "called"],
   [/\btakes? place\b/gi, "happens"],
@@ -220,16 +220,18 @@ export function splitSentence(sentence: string, level: Level): string[] {
     const third: Record<string, string> = { making: "makes", causing: "causes", allowing: "allows", giving: "gives", creating: "creates", leaving: "leaves", forming: "forms", producing: "produces", helping: "helps", letting: "lets" };
     return `. This ${third[v] ?? v} `;
   });
-  // ", which is/are ..." -> ". It is/They are ..."
-  s = s.replace(/,\s+which\s+(is|was)\s+/g, ". It $1 ").replace(/,\s+which\s+(are|were)\s+/g, ". They $1 ").replace(/,\s+which\s+/g, ". This ");
+  // ", which is/are ..." -> ". It is/They are ..."; ", which store" (plural verb) -> ". These store"
+  s = s.replace(/,\s+which\s+(is|was|has)\s+/g, ". It $1 ").replace(/,\s+which\s+(are|were|have)\s+/g, ". They $1 ");
+  s = s.replace(/,\s+which\s+(\w+)\s+/g, (_m, v: string) => (/s$/.test(v) && !/ss$/.test(v) ? `. This ${v} ` : `. These ${v} `));
   // ", where ..." / ", who ..."
   s = s.replace(/,\s+where\s+/g, ". There, ").replace(/,\s+who\s+/g, ". They ");
   // "; " -> ". "
   s = s.replace(/;\s+/g, ". ");
-  // ": " explanations -> ". " when both halves are clauses
-  s = s.replace(/:\s+(?=[a-z][^.]{20,})/g, ". ");
-  // coordinating clauses
-  s = s.replace(/,\s+(and|but|so|yet)\s+(?=\w+\s+\w+)/g, (_m, c: string) => (c === "and" ? ". Then " : c === "but" ? ". But " : c === "so" ? ". So " : ". Still "));
+  // coordinating clauses; ", and reflects ..." keeps its implied subject as "It also reflects ..."
+  s = s.replace(/,\s+(and|but|so|yet)\s+(?=(\w+)\s+\w+)/g, (_m, c: string, next: string) => {
+    if (c === "and") return /^[a-z]+s$/.test(next) && !/^(is|was|has|this|its|his)$/.test(next) ? ". It also " : ". Then ";
+    return c === "but" ? ". But " : c === "so" ? ". So " : ". Still ";
+  });
   if (level === "simple") {
     s = s.replace(/\s+(because|although|while|whereas|since|unless|even though)\s+(?=\w+\s+\w+\s+\w+)/g, (_m, c: string) => `. ${/^(although|even though|whereas)$/.test(c) ? "But" : c === "because" || c === "since" ? "That is because" : c === "unless" ? "Unless" : "Meanwhile"} `);
     s = s.replace(/\s+(?:in order )?to\s+(?=\w+\s+\w+\s+\w+\s+\w+\s+\w+)/g, (m) => m);
@@ -250,11 +252,13 @@ function unpackParentheses(sentence: string, level: Level): string {
 
 export function simplifySentence(sentence: string, level: Level): string[] {
   const swapped = swapVocabulary(unpackParentheses(sentence, level));
-  const parts = splitSentence(swapped, level);
+  // Phrase swaps can introduce sentence breaks; split on them before clause splitting.
+  const parts = swapped.split(/(?<=[.!?])\s+(?=[A-Z])/).flatMap((piece) => splitSentence(piece, level));
   if (level !== "simple") return parts;
-  // Simple: long remaining sentences are split again at the first comma past the middle.
+  // Simple: long remaining sentences are split again at the first comma past the middle,
+  // unless they open with a subordinate clause (splitting "While X, Y" leaves a fragment).
   return parts.flatMap((p) => {
-    if (words(p) <= 18) return [p];
+    if (words(p) <= 18 || /^(while|although|because|if|when|since|after|before|unless|even though|as|once|until|whenever)\b/i.test(p)) return [p];
     const half = Math.floor(p.length / 2);
     const idx = p.indexOf(", ", half);
     if (idx === -1) return [p];
