@@ -1,4 +1,5 @@
 import { normalizeForMatch, STOPWORDS, stem, wordsToDigits } from "./match";
+import { ACADEMIC_WORDS } from "./simplify";
 
 export type Fact = { kind: "number" | "date" | "percent" | "money" | "name" | "term"; value: string; normalized: string };
 
@@ -28,7 +29,10 @@ export function extractFacts(text: string): Fact[] {
   }
   for (const m of text.matchAll(TERM)) {
     const w = m[0];
-    if (STOPWORDS.has(w.toLowerCase()) || /^[A-Z][a-z]+$/.test(w) && w.length < 12) continue;
+    const lower = w.toLowerCase();
+    if (STOPWORDS.has(lower) || ACADEMIC_WORDS.has(lower) || (/^[A-Z][a-z]+$/.test(w) && w.length < 12)) continue;
+    // Plain long words with common suffixes are vocabulary, not facts; keep scientific-looking ones.
+    if (/^[a-z]+(ly|ness|ment|tion|sion|ally|ful|less|able|ible|ated|ating|ized|izing)$/.test(lower) && !/(ation|ization)$/.test(lower)) continue;
     add({ kind: "term", value: w, normalized: stem(w.toLowerCase()) });
   }
   return [...out.values()];

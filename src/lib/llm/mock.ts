@@ -1,116 +1,16 @@
-import type { Block, SectionContent } from "@/lib/content/types";
+import type { SectionContent } from "@/lib/content/types";
 import type { LlmProvider, MaterialResult, MaterialTask, RewriteLevel, SectionResult, SectionTask, VisionResult, VisionTask } from "./types";
 
-// Deterministic stand-in for the model. Used by every test and by local dev
-// without an API key. It imitates one real failure mode on purpose: in the
-// "simple" level it drops the first year it sees, so Fact Guard has something
-// to catch in demos and tests.
+// Built-in adapter: deterministic and rule-based (see src/lib/text/simplify.ts).
+// Used when no API key is configured and in every test.
+import { simplifyContent, simplifySentence } from "@/lib/text/simplify";
 
-// Explicit forms so past tenses stay grammatical ("demonstrated" -> "showed").
-const VERB_SWAPS: Record<string, [string, string, string]> = {
-  demonstrate: ["show", "shows", "showed"],
-  utilize: ["use", "uses", "used"],
-  utilise: ["use", "uses", "used"],
-  obtain: ["get", "gets", "got"],
-  require: ["need", "needs", "needed"],
-  commence: ["start", "starts", "started"],
-  assist: ["help", "helps", "helped"],
-  indicate: ["show", "shows", "showed"],
-};
+export { simplifySentence };
 
-const WORD_SWAPS: [RegExp, string][] = [
-  [/\bapproximately\b/gi, "about"],
-  [/\bconsequently\b/gi, "so"],
-  [/\btherefore\b/gi, "so"],
-  [/\bnumerous\b/gi, "many"],
-  [/\badditionally\b/gi, "also"],
-  [/\bin order to\b/gi, "to"],
-  [/\bsufficient\b/gi, "enough"],
-  [/\bprior to\b/gi, "before"],
-  [/\bfundamental\b/gi, "basic"],
-  [/\bsubsequently\b/gi, "later"],
-];
-
-function swapWords(s: string): string {
-  let out = s;
-  for (const [re, rep] of WORD_SWAPS) out = out.replace(re, rep);
-  out = out.replace(/\b([A-Za-z]+?)(s|d|ed)?\b/g, (m, stem: string, suffix: string | undefined) => {
-    const base = stem.toLowerCase();
-    const forms = VERB_SWAPS[base] ?? (suffix === "d" || suffix === "ed" ? VERB_SWAPS[`${base}e`] : undefined);
-    if (!forms) return m;
-    const pick = suffix === "s" ? forms[1] : suffix ? forms[2] : forms[0];
-    return /^[A-Z]/.test(stem) ? capitalize(pick) : pick;
-  });
-  return out;
-}
-
-const SPLIT_MEDIUM = /,\s+(and|but|so|which|while)\s+/;
-const SPLIT_SIMPLE = /\s+(because|but|and then|so that|although|whereas)\s+/;
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function endSentence(s: string): string {
-  const t = s.trim().replace(/[,;:]$/, "");
-  return /[.!?]$/.test(t) ? t : `${t}.`;
-}
-
-export function simplifySentence(sentence: string, level: RewriteLevel): string[] {
-  const s = swapWords(sentence);
-  const parts = level === "medium" ? s.split(SPLIT_MEDIUM) : s.split(SPLIT_SIMPLE);
-  if (parts.length < 3 || s.split(/\s+/).length < 14) return [endSentence(s)];
-  const out: string[] = [];
-  // split() with a capturing group alternates [text, connective, text, ...]
-  let current = parts[0] ?? "";
-  for (let i = 1; i < parts.length; i += 2) {
-    const connective = parts[i] ?? "";
-    const next = parts[i + 1] ?? "";
-    out.push(endSentence(current));
-    const lead = connective === "which" ? "This" : connective === "and" || connective === "and then" ? "Then" : capitalize(connective);
-    current = `${lead} ${next}`;
-  }
-  out.push(endSentence(current));
-  return out.map((x) => capitalize(x));
-}
-
-const YEAR = /\b(1[0-9]{3}|20[0-9]{2})\b/;
-
-export function dropFirstYear(sentences: string[]): { sentences: string[]; dropped: string | null } {
-  for (let i = 0; i < sentences.length; i++) {
-    const s = sentences[i]!;
-    const m = s.match(YEAR);
-    if (!m) continue;
-    const year = m[1]!;
-    let out = s.replace(new RegExp(`^(In|By|Around|Since)\\s+${year},?\\s+`, "i"), "");
-    if (out === s) out = s.replace(new RegExp(`\\s+(in|by|around|since)\\s+${year}\\b`, "i"), "");
-    if (out === s) out = s.replace(new RegExp(`\\s*\\(${year}\\)`), "");
-    if (out === s) out = s.replace(year, "").replace(/\s{2,}/g, " ");
-    const copy = [...sentences];
-    copy[i] = capitalize(out.trim());
-    return { sentences: copy, dropped: year };
-  }
-  return { sentences, dropped: null };
-}
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function rewriteContent(content: SectionContent, level: RewriteLevel): SectionContent {
-  let yearDropped = false;
-  const blocks: Block[] = content.blocks.map((b) => {
-    if (b.type === "paragraph") {
-      let sentences = b.sentences.flatMap((s) => simplifySentence(s, level));
-      if (level === "simple" && !yearDropped) {
-        const r = dropFirstYear(sentences);
-        sentences = r.sentences;
-        yearDropped = r.dropped !== null;
-      }
-      return { type: "paragraph", sentences };
-    }
-    if (b.type === "list") {
-      return { type: "list", ordered: b.ordered, items: b.items.map((item) => item.flatMap((s) => simplifySentence(s, level))) };
-    }
-    return b;
-  });
-  return { blocks };
+  return simplifyContent(content, level);
 }
 
 function firstSentence(content: SectionContent): string {
@@ -221,11 +121,7 @@ export class MockProvider implements LlmProvider {
   async rewriteSection(task: SectionTask): Promise<SectionResult> {
     await this.tick("section");
     const medium = task.levels.includes("medium") ? rewriteContent(task.content, "medium") : null;
-    let simple = task.levels.includes("simple") ? rewriteContent(task.content, "simple") : null;
-    // On a Fact Guard retry the "model" behaves and keeps the facts.
-    if (simple && task.missing?.simple?.length) {
-      simple = { blocks: rewriteContent(task.content, "medium").blocks };
-    }
+    const simple = task.levels.includes("simple") ? rewriteContent(task.content, "simple") : null;
     return {
       title: titleFrom(task.content, task.title),
       about: aboutFrom(task.content),

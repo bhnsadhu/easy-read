@@ -22,6 +22,11 @@ Think of it as Beacons for teachers: one beautiful class link where every materi
 - Reading settings: font (Atkinson Hyperlegible, Lexend, OpenDyslexic), text size, letter spacing, word spacing, line spacing, line width, background (cream, pale blue, soft green, dark, high contrast), and a reading ruler. Saved on the device only.
 - Level switch between Original, Plain, and Simple.
 
+## Two ways to adapt text
+
+- **Built-in adapter (default, no keys, no cost).** A rule-based rewriter in `src/lib/text/simplify.ts`: splits long sentences at clauses, replaces about 200 academic words and phrases with everyday ones (with correct verb forms), untangles "which" and "making" clauses, and tightens further for the Simple level. It never adds or removes facts, and Fact Guard verifies every rewrite anyway. Deterministic, runs offline, and is what the test suite uses.
+- **Claude (optional).** Set `ANTHROPIC_API_KEY` and `MOCK_LLM=0` to have Claude do the rewriting with structured outputs. Higher quality, especially for the Simple level, at a few cents per material.
+
 ## Run it locally (no keys needed)
 
 ```bash
@@ -30,7 +35,7 @@ cp .env.example .env.local            # defaults to MOCK_DB=1 and MOCK_LLM=1
 NEXT_PUBLIC_DEV_TOOLS=1 pnpm dev      # http://localhost:3000
 ```
 
-Mock mode runs a real Postgres in-process (PGlite) with the same migrations and row-level security as production, and a deterministic stand-in for the AI that imitates one real failure (it drops a date in the Simple level) so you can see Fact Guard work. Sign in with any email through the dev sign-in. `/styleguide` shows every component.
+Mock mode runs a real Postgres in-process (PGlite) with the same migrations and row-level security as production, and uses the built-in rule-based adapter for rewriting. Sign in with any email through the dev sign-in. `/styleguide` shows every component.
 
 ## Deploy (Vercel + Supabase + Anthropic)
 
@@ -79,7 +84,7 @@ flowchart LR
 - **Next.js 16 App Router, TypeScript strict, Tailwind v4.** Every color, size, and spacing value lives in `src/styles/tokens.css`; a test fails the build on raw colors anywhere else, on deficit language in copy, and on any text token under 4.5:1 contrast.
 - **Data**: plain SQL through one interface (`src/lib/db`) that sets `request.jwt.claims` and `set local role` per request, so Postgres row-level security applies exactly as it would through Supabase's API. `postgres.js` talks to Supabase in production; PGlite runs the same migrations in tests and local dev. Students never read tables: public pages call `security definer` RPCs keyed by 128-bit share tokens, cached and invalidated on publish.
 - **Processing is resumable**: sections carry a status and a lease. The client calls `POST /api/materials/[id]/process` until done; closing the tab, refreshing, or a second tab just continues the same work. One failed section never fails the material.
-- **AI**: `@anthropic-ai/sdk` with structured outputs (zod schemas). Uploaded content is wrapped as data inside `<document>` tags and the prompt states it is never instructions. `MOCK_LLM=1` swaps in a deterministic provider.
+- **Rewriting**: the built-in rule-based adapter by default; optionally `@anthropic-ai/sdk` with structured outputs (zod schemas), where uploaded content is wrapped as data inside `<document>` tags and the prompt states it is never instructions.
 - **Read-aloud**: browser Web Speech API behind a small interface (`src/lib/tts`). One utterance per sentence, chained, which avoids Chrome's long-utterance cutoff and gives sentence highlighting on every platform; word underline uses boundary events where they exist and a timing estimate elsewhere. iOS needs the first play inside a tap, which the reader does.
 - **Security**: nonce-based CSP, HSTS, frame-ancestors none, no HTML ever stored or rendered from content, magic-link sign-in via `token_hash` (works across devices), rate limits and daily caps in Postgres, uploads go straight to Storage via signed URLs (never through a function), URL import blocks private networks.
 
