@@ -1,0 +1,31 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# env — only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# next.js / vercel
+.next
+out
+.vercel
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+playwright-report
+test-results
+coverage
+blob-report
+.playwright
+
+# supabase local
+supabase/.temp
+supabase/.branches
+
+# misc
+.DS_Store
+*.log
+.turbo
