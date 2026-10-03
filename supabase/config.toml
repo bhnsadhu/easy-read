@@ -1,0 +1,22 @@
+# Only the parts of Supabase's config that ReadEasy customises. Apply with the
+# Supabase CLI (`supabase link` then `supabase config push`) or mirror them in
+# the dashboard under Authentication -> Email Templates and Rate Limits.
+
+[auth]
+site_url = "env(NEXT_PUBLIC_APP_URL)"
+additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+# Built-in SMTP allows ~2 emails/hour. Configure custom SMTP (Resend, Postmark)
+# in the dashboard before any demo: Project settings -> Authentication -> SMTP.
+
+[auth.email.template.magic_link]
+subject = "Your ReadEasy sign-in link"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.rate_limit]
+email_sent = 30

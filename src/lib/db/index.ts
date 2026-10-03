@@ -1,8 +1,8 @@
 import "server-only";
 import { isMockDb, serverEnv } from "@/lib/env";
-import type { Db, DbContext, Queryable } from "./types";
+import type { Db, DbContext, Query } from "./types";
 
-export type { Db, DbContext, Queryable };
+export type { Db, DbContext, Query };
 
 const globalForDb = globalThis as unknown as { __readeasyDb?: Promise<Db> };
 
@@ -21,7 +21,7 @@ export function getDb(): Promise<Db> {
   return globalForDb.__readeasyDb;
 }
 
-export async function withDb<T>(ctx: DbContext, fn: (q: Queryable) => Promise<T>): Promise<T> {
+export async function withDb<T>(ctx: DbContext, fn: (q: Query) => Promise<T>): Promise<T> {
   const db = await getDb();
   return db.run(ctx, fn);
 }

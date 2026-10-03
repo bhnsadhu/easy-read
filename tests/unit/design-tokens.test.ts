@@ -13,6 +13,7 @@ const ALLOWED_RAW_COLOR_FILES = new Set([
   path.join(ROOT, "src/app/opengraph-image.tsx"),
   path.join(ROOT, "src/app/manifest.ts"),
   path.join(ROOT, "src/lib/brand.ts"),
+  path.join(ROOT, "supabase/templates/magic-link.html"),
 ]);
 
 const HEX = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g;

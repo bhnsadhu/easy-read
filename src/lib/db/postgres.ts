@@ -1,6 +1,6 @@
 import "server-only";
 import postgres from "postgres";
-import type { Db, DbContext, Queryable } from "./types";
+import type { Db, DbContext, Query } from "./types";
 
 // Production driver: Supabase's Supavisor pooler (transaction mode, prepare: false).
 export function createPostgresDb(url: string): Db {
@@ -14,11 +14,9 @@ export function createPostgresDb(url: string): Db {
           await tx.unsafe("select set_config('request.jwt.claims', $1, true)", [claims]);
           await tx.unsafe(`set local role ${ctx.role}`);
         }
-        const q: Queryable = {
-          async query(stmt, params = []) {
-            const r = await tx.unsafe(stmt, params as never[]);
-            return { rows: Array.from(r) as never[], affectedRows: r.count };
-          },
+        const q: Query = async (stmt, params = []) => {
+          const r = await tx.unsafe(stmt, params as never[]);
+          return { rows: Array.from(r) as never[], affectedRows: r.count };
         };
         return fn(q);
       }) as Promise<ReturnType<typeof fn>>;

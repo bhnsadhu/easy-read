@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { citext } from "@electric-sql/pglite/contrib/citext";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import type { Db, DbContext, Queryable } from "./types";
+import type { Db, DbContext, Query } from "./types";
 
 // Supabase's auth schema, reduced to what our policies and triggers touch.
 const SUPABASE_SHIM = `
@@ -39,11 +39,9 @@ export async function createPgliteDb(dataDir?: string): Promise<Db> {
           await tx.query("select set_config('request.jwt.claims', $1, true)", [claims]);
           await tx.exec(`set local role ${ctx.role}`);
         }
-        const q: Queryable = {
-          async query(sql, params = []) {
-            const r = await tx.query(sql, params);
-            return { rows: r.rows as never[], affectedRows: r.affectedRows ?? 0 };
-          },
+        const q: Query = async (sql, params = []) => {
+          const r = await tx.query(sql, params);
+          return { rows: r.rows as never[], affectedRows: r.affectedRows ?? 0 };
         };
         return fn(q);
       });

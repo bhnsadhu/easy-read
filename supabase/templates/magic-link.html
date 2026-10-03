@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="light" />
+    <title>Your ReadEasy sign-in link</title>
+  </head>
+  <body style="margin:0;padding:0;background:#FBF7EF;font-family:'Atkinson Hyperlegible Next','Atkinson Hyperlegible',Arial,Helvetica,sans-serif;color:#2B2620;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FBF7EF;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;background:#FFFCF5;border:1px solid #E6DFD2;border-radius:20px;">
+            <tr>
+              <td style="padding:32px 32px 8px 32px;">
+                <table role="presentation" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:10px;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" style="width:36px;height:36px;background:#0E6F63;border-radius:8px;">
+                        <tr><td style="padding:8px 8px 0 8px;"><div style="height:3px;width:16px;background:#FBF7EF;border-radius:2px;"></div></td></tr>
+                        <tr><td style="padding:4px 8px 0 8px;"><div style="height:5px;width:20px;background:#FFE66D;border-radius:3px;"></div></td></tr>
+                        <tr><td style="padding:4px 8px 8px 8px;"><div style="height:3px;width:12px;background:#FBF7EF;border-radius:2px;"></div></td></tr>
+                      </table>
+                    </td>
+                    <td style="vertical-align:middle;font-size:22px;font-weight:700;letter-spacing:-0.01em;color:#2B2620;">ReadEasy</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 0 32px;font-size:24px;line-height:32px;font-weight:700;color:#2B2620;">Here's your sign-in link</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 32px 0 32px;font-size:17px;line-height:26px;color:#5F574D;">Tap the button to sign in to ReadEasy. The link works once and expires in an hour.</td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 0 32px;">
+                <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next={{ .RedirectTo }}" style="display:inline-block;background:#0E6F63;color:#FFFFFF;text-decoration:none;font-size:17px;font-weight:700;line-height:24px;padding:14px 24px;border-radius:10px;">Sign in to ReadEasy</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 0 32px;font-size:15px;line-height:22px;color:#5F574D;">If the button doesn't work, copy this link into your browser:<br /><span style="word-break:break-all;color:#0B5F55;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next={{ .RedirectTo }}</span></td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 32px 32px;font-size:14px;line-height:20px;color:#5F574D;border-top:1px solid #E6DFD2;">Didn't ask for this? You can ignore this email. Nobody can sign in without it.</td>
+            </tr>
+          </table>
+          <div style="max-width:480px;padding:20px 8px 0 8px;font-size:13px;line-height:18px;color:#5F574D;">ReadEasy · Every reading, ready for every reader.</div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

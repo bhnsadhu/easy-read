@@ -8,12 +8,10 @@ export type DbContext = {
 
 export type QueryResult<T> = { rows: T[]; affectedRows: number };
 
-export type Queryable = {
-  query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<QueryResult<T>>;
-};
+export type Query = <T = Record<string, unknown>>(sql: string, params?: unknown[]) => Promise<QueryResult<T>>;
 
 export type Db = {
   // Runs fn inside one transaction with RLS applied for the given context.
-  run<T>(ctx: DbContext, fn: (q: Queryable) => Promise<T>): Promise<T>;
+  run<T>(ctx: DbContext, fn: (q: Query) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 };
