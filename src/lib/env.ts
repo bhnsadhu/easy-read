@@ -26,18 +26,27 @@ const publicSchema = z.object({
 });
 
 // Next.js only inlines NEXT_PUBLIC_* when referenced by full name.
+const blank = (v: string | undefined) => (v && v.trim() !== "" ? v : undefined);
+
 export const publicEnv = publicSchema.parse({
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_DEV_TOOLS: process.env.NEXT_PUBLIC_DEV_TOOLS,
+  NEXT_PUBLIC_SUPABASE_URL: blank(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: blank(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  NEXT_PUBLIC_APP_URL: blank(process.env.NEXT_PUBLIC_APP_URL),
+  NEXT_PUBLIC_DEV_TOOLS: blank(process.env.NEXT_PUBLIC_DEV_TOOLS),
 });
 
 let cachedServer: z.infer<typeof serverSchema> | null = null;
 
+// Blank lines in .env files ("DATABASE_URL=") must read as unset, not "".
+function withoutBlanks(env: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(env)) if (v !== undefined && v.trim() !== "") out[k] = v;
+  return out;
+}
+
 export function serverEnv() {
   if (cachedServer) return cachedServer;
-  cachedServer = serverSchema.parse(process.env);
+  cachedServer = serverSchema.parse(withoutBlanks(process.env));
   return cachedServer;
 }
 
