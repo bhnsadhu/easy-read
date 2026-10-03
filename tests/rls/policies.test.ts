@@ -183,7 +183,8 @@ describe("try-before-signup drafts", () => {
   it("anonymous drafts are invisible to teachers until claimed, and claimable once", async () => {
     const draftToken = "draft_abc123";
     // One anonymous session can create several drafts.
-    await t.as("service", null, (q) => q("insert into materials (draft_token, title, source_type) values ($1, 'First try', 'paste')", [draftToken]));
+    // Older on purpose: PGlite's clock can give back-to-back inserts the same created_at.
+    await t.as("service", null, (q) => q("insert into materials (draft_token, title, source_type, created_at) values ($1, 'First try', 'paste', now() - interval '1 minute')", [draftToken]));
     const m = await t.as("service", null, (q) =>
       q<{ id: string }>("insert into materials (draft_token, title, source_type) values ($1, 'Try it', 'paste') returning id", [draftToken]),
     );
