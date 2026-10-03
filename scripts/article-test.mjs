@@ -59,7 +59,7 @@ await p.screenshot({ path: "test-shots/12-pdf-review.png", fullPage: true });
 
 // 3. Publish and read as a student
 await p.getByRole("link", { name: "Sign in to publish" }).click();
-await p.getByRole("button", { name: "Sign in" }).click();
+await p.getByLabel("Email").fill("teacher@example.edu"); await p.getByRole("button", { name: "Sign in" }).click();
 await p.waitForURL(/\/materials\/.+\/review/);
 while (await p.getByRole("button", { name: "Keep original here" }).count()) { await p.getByRole("button", { name: "Keep original here" }).first().click(); await p.waitForTimeout(500); }
 if (await p.getByLabel("Class name").count()) { await p.getByLabel("Class name").fill("Mr. Ortiz Biology"); await p.getByRole("button", { name: "Create class link" }).click(); }

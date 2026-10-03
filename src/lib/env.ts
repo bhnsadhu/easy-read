@@ -51,6 +51,12 @@ export function serverEnv() {
   return cachedServer;
 }
 
+// Sign-in: Supabase magic links when Supabase Auth is configured, otherwise a
+// simple email sign-in (no password) that works with any Postgres.
+export function authMode(): "supabase" | "simple" {
+  return hasSupabase() ? "supabase" : "simple";
+}
+
 export function hasSupabase(): boolean {
   return Boolean(publicEnv.NEXT_PUBLIC_SUPABASE_URL && publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }

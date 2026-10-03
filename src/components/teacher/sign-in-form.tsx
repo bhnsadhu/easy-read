@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requestMagicLink } from "@/lib/actions/auth";
 
-export function SignInForm({ next, devMode }: { next: string; devMode: boolean }) {
+export function SignInForm({ next, simple }: { next: string; simple: boolean }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (devMode) {
+  if (simple) {
     return (
-      <form action="/api/dev/signin" method="post" className="flex flex-col gap-3">
+      <form action="/api/auth/simple" method="post" className="flex flex-col gap-3">
         <input type="hidden" name="next" value={next} />
-        <Input name="email" type="email" required placeholder="you@school.org" aria-label="Email" defaultValue="teacher@example.edu" />
+        <Input name="email" type="email" required placeholder="you@school.org" aria-label="Email" autoComplete="email" />
         <Button type="submit" size="lg">Sign in</Button>
       </form>
     );

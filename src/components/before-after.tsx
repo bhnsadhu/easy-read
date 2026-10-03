@@ -125,10 +125,10 @@ export function BeforeAfter() {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold">Before</h3>
+            <h2 className="text-lg font-bold">Before</h2>
             <span className="rounded-full bg-danger-soft px-3 py-1 text-sm font-bold text-danger">reads at ≈ grade {before ?? "12+"}</span>
           </div>
-          <div className="h-[520px] overflow-auto rounded-lg border border-border-strong bg-surface-sunken p-5" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: 13, lineHeight: 1.2, textAlign: "justify", letterSpacing: 0 }} aria-label="Original reading">
+          <div tabIndex={0} role="region" className="h-[520px] overflow-auto rounded-lg border border-border-strong bg-surface-sunken p-5" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: 13, lineHeight: 1.2, textAlign: "justify", letterSpacing: 0 }} aria-label="Original reading">
             {sample.text.split("\n").map((line, i) => (
               <p key={i} className={i === 0 ? "mb-2 font-bold" : "mb-2"}>{line}</p>
             ))}
@@ -138,7 +138,7 @@ export function BeforeAfter() {
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-lg font-bold">After, with ReadEasy</h3>
+            <h2 className="text-lg font-bold">After, with ReadEasy</h2>
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-success-soft px-3 py-1 text-sm font-bold text-success">reads at ≈ grade {after ?? "?"}</span>
               <div role="group" aria-label="Level" className="flex rounded-full border border-border-strong p-0.5">
@@ -160,10 +160,10 @@ export function BeforeAfter() {
               <button key={v} type="button" aria-pressed={bg === v} onClick={() => setBg(v)} className={clsx("rounded-md border px-2.5 py-1 font-bold", bg === v ? "border-accent bg-accent-soft" : "border-border-strong")}>{label}</button>
             ))}
           </div>
-          <div data-reading-bg={bg} className={clsx("h-[520px] overflow-auto rounded-lg border border-border bg-surface p-5 text-ink", font === "lexend" ? "font-lexend" : font === "opendyslexic" ? "font-opendyslexic" : "font-sans")} style={{ fontSize: size, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em", maxWidth: "100%" }} aria-label="Adapted reading">
+          <div data-reading-bg={bg} className={clsx("h-[520px] overflow-auto rounded-lg border border-border bg-surface p-5 text-ink", font === "lexend" ? "font-lexend" : font === "opendyslexic" ? "font-opendyslexic" : "font-sans")} tabIndex={0} role="region" style={{ fontSize: size, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em", maxWidth: "100%" }} aria-label="Adapted reading">
             {sections.map((s, si) => (
               <section key={si} className="mb-8">
-                <h4 className="mb-2 text-xl font-bold"><Sentence id={`${si}-t`} text={s.title} /></h4>
+                <h3 className="mb-2 text-xl font-bold"><Sentence id={`${si}-t`} text={s.title} /></h3>
                 {s.lead && <p className="mb-3 rounded-md bg-accent-soft px-3 py-2 text-ink" style={{ fontSize: "0.85em" }}><span className="font-bold">In short:</span> {s.lead}</p>}
                 {s.words.length > 0 && (
                   <p className="mb-4 flex flex-wrap gap-2" style={{ fontSize: "0.8em" }} aria-label="Key words with syllables">

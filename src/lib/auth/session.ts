@@ -5,7 +5,7 @@ import { hasSupabase, publicEnv, serverEnv } from "@/lib/env";
 
 export type Session = { sub: string; email: string };
 
-export const MOCK_SESSION_COOKIE = "readeasy_mock_session";
+export const SESSION_COOKIE = "readeasy_session";
 
 function secret(): string {
   const s = serverEnv().DRAFT_COOKIE_SECRET;
@@ -31,8 +31,8 @@ export function verifySigned(value: string | undefined): string | null {
   return timingSafeEqual(Buffer.from(sig), Buffer.from(expected)) ? payload : null;
 }
 
-// Who is signed in. Real Supabase Auth in production; a signed cookie set by
-// the dev-only sign-in helper when running without Supabase (tests, local).
+// Who is signed in. Supabase Auth when configured; otherwise the signed cookie
+// set by the simple email sign-in.
 export async function getSession(): Promise<Session | null> {
   if (hasSupabase()) {
     const { createSupabaseServerClient } = await import("@/lib/supabase/server");
@@ -42,9 +42,8 @@ export async function getSession(): Promise<Session | null> {
     if (!claims?.sub) return null;
     return { sub: claims.sub, email: typeof claims.email === "string" ? claims.email : "" };
   }
-  if (!publicEnv.NEXT_PUBLIC_DEV_TOOLS) return null;
   const store = await cookies();
-  const payload = verifySigned(store.get(MOCK_SESSION_COOKIE)?.value);
+  const payload = verifySigned(store.get(SESSION_COOKIE)?.value);
   if (!payload) return null;
   try {
     const parsed = JSON.parse(payload) as Partial<Session>;

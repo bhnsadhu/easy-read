@@ -4,17 +4,18 @@ import { resolveOwner } from "@/lib/auth/owner";
 import { ensureDraftToken } from "@/lib/auth/draft";
 import { enforceRateLimit, LIMITS } from "@/lib/limits";
 import { serverEnv } from "@/lib/env";
-import { createSignedUpload, newUploadId, uploadMode } from "@/lib/uploads";
+import { createSignedUpload, DIRECT_UPLOAD_MAX_BYTES, newUploadId, uploadMode } from "@/lib/uploads";
 
 const ALLOWED = new Set(["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png", "image/webp", "image/gif", "text/plain", "text/markdown", "application/octet-stream", ""]);
 
 export async function POST(request: NextRequest) {
   try {
     const body = await readJson<{ name?: string; mime?: string; size?: number }>(request);
-    const maxBytes = serverEnv().MAX_UPLOAD_MB * 1024 * 1024;
+    const direct = uploadMode() === "direct";
+    const maxBytes = direct ? Math.min(serverEnv().MAX_UPLOAD_MB * 1024 * 1024, DIRECT_UPLOAD_MAX_BYTES) : serverEnv().MAX_UPLOAD_MB * 1024 * 1024;
     if (typeof body.size !== "number" || body.size <= 0) return jsonError("bad_request", "That file looks empty.", 400);
     if (body.size > maxBytes) {
-      return jsonError("too_large", `That file is ${(body.size / 1024 / 1024).toFixed(1)} MB. ReadEasy accepts up to ${serverEnv().MAX_UPLOAD_MB} MB. Try a smaller file, or paste the text.`, 413);
+      return jsonError("too_large", `That file is ${(body.size / 1024 / 1024).toFixed(1)} MB. This server accepts up to ${Math.round(maxBytes / 1024 / 1024)} MB. Try a smaller file, or paste the text.`, 413);
     }
     if (!ALLOWED.has((body.mime ?? "").toLowerCase())) {
       return jsonError("unsupported", "ReadEasy reads PDF, Word (.docx), images, and text files. Try one of those, or paste the text.", 415);

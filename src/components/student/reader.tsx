@@ -222,7 +222,7 @@ export function Reader({ material }: { material: PublicMaterial }) {
       </main>
 
       {popover && (
-        <div role="dialog" aria-label={`Word: ${popover.word}`} className="fixed inset-x-4 bottom-28 z-30 mx-auto max-w-md rounded-xl border border-border bg-surface-raised p-4 shadow-float">
+        <aside role="dialog" aria-label={`Word: ${popover.word}`} className="fixed inset-x-4 bottom-28 z-30 mx-auto max-w-md rounded-xl border border-border bg-surface-raised p-4 shadow-float">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xl font-bold">{popover.word}</p>
@@ -234,12 +234,12 @@ export function Reader({ material }: { material: PublicMaterial }) {
               <button type="button" onClick={() => setPopover(null)} aria-label="Close" className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-sunken"><X size={20} /></button>
             </div>
           </div>
-        </div>
+        </aside>
       )}
 
       {prefs.ruler && rulerY !== null && <div aria-hidden className="pointer-events-none fixed inset-x-0 z-10 h-10 border-y-2 border-highlight-bar/60 bg-highlight/20" style={{ top: rulerY - 20 }} />}
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface-raised/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface-raised/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Playback">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <button type="button" aria-label="Start over" onClick={() => playFrom(0)} className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-surface-sunken"><SkipBack size={22} /></button>
           <button type="button" onClick={toggle} disabled={noVoices} aria-label={state === "playing" ? "Pause" : "Listen"} className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-on-accent shadow-float disabled:opacity-50">{state === "playing" ? <Pause size={30} /> : <Play size={30} className="ml-1" />}</button>
@@ -251,7 +251,7 @@ export function Reader({ material }: { material: PublicMaterial }) {
           </label>
         </div>
         {noVoices && <p className="px-4 pb-2 text-center text-sm text-ink-muted">No voices on this device yet. You can still read along.</p>}
-      </div>
+      </footer>
 
       <Sheet open={settingsOpen} onOpenChange={setSettingsOpen} title="Reading settings">
         <div className="flex flex-col gap-5">

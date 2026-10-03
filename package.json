@@ -12,11 +12,9 @@
     "test:rls": "vitest run tests/rls",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:load": "tsx scripts/load-test.ts",
-    "test:lighthouse": "lhci autorun",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
-    "fixtures": "tsx scripts/generate-fixtures.ts",
-    "seed": "tsx scripts/seed-demo.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "test:smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

@@ -3,16 +3,16 @@
 ## Before you start
 
 - Open the deployed URL on a laptop and keep your phone unlocked with the camera ready.
-- Confirm `/api/health` returns `ok: true` with `db: postgres` and `llm: anthropic`.
-- Sign in once beforehand so the magic-link email isn't on the clock. Have a class created already ("Ms. Rivera's 7th grade science").
-- Have a messy handout ready: a phone photo of a worksheet or a PDF. Keep the sample reading as a fallback (the "Use a sample reading" button).
-- Turn the laptop volume up. Test one sentence of read-aloud in the browser you'll use.
+- Confirm `/api/health` returns `ok: true` with `db: postgres`.
+- Sign in once beforehand (simple email sign-in) and have a class created already ("Ms. Rivera's 7th grade science").
+- Have a messy handout ready: a PDF or a phone photo of a worksheet. The four sample buttons on the landing page are the fallback.
+- Turn the laptop volume up. Test one sentence of read-aloud in the browser you'll use (Chrome or Safari).
 
 ## Script
 
-1. **The problem (10 s).** "A third of a class can't get through a dense handout. The teacher has five minutes between periods."
-2. **Upload (20 s).** Landing page → Upload a file → the photo. The extracted text appears in the box. Click **Make it readable**.
-3. **Review (30 s).** Sections appear one by one. Point at the grade estimate per level. Find the **Fact Guard** flag: "1 fact was dropped: 1779." Say: "Every rewrite is checked against the original for every number, date, name, and term. If anything is missing we keep the original wording and tell the teacher exactly what was dropped. Nobody else does this on the teacher's own document." Click **Keep original here**.
+1. **The problem (10 s).** "One in five students can't get through a dense handout. The teacher has five minutes between periods."
+2. **Before/After (30 s).** Landing page → click **Science article**. Left is the handout; right is ReadEasy. Press **Listen**: the sentence lights up. Click **OpenDyslexic** and **A+** to show the reading settings change live. Switch to **Simple**.
+3. **Your own material (20 s).** Scroll down → **Upload a file** → the PDF or photo. The extracted text appears. Click **Make it readable**. Sections appear one by one with a grade estimate per level and the green **Fact Guard** line: "every number, date, name, and key term from the original is in the rewrite." Say: "Every rewrite is checked against the original. If anything were missing we'd keep the original wording and show the teacher exactly what was dropped."
 4. **Publish (10 s).** Click **Publish**. Click **QR for projector**.
 5. **Student (40 s).** Scan the QR with the phone. Class page → tap the material. "Words to know" with play buttons; tap one. Tap **Start reading**, then the big play button: the sentence lights up as it's read. Tap another sentence to jump. Tap a word: hear it, see syllables and the definition. Open **Reading settings**: switch to OpenDyslexic, widen the spacing, pick pale blue. Switch level to **Simple**, then back to **Original**.
 6. **Close (10 s).** "No student accounts, no tracking. One link per class. The original is always one tap away."

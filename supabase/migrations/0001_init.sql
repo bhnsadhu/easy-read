@@ -47,8 +47,8 @@ end $$;
 
 -- ---------------------------------------------------------------- teachers
 create table public.teachers (
-  id uuid primary key references auth.users (id) on delete cascade,
-  email text not null check (email = lower(email)),
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique check (email = lower(email)),
   display_name text,
   daily_generation_cap int not null default 40,
   created_at timestamptz not null default now(),
@@ -60,13 +60,18 @@ create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   insert into public.teachers (id, email) values (new.id, lower(new.email))
-  on conflict (id) do nothing;
+  on conflict do nothing;
   return new;
 end $$;
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+-- With Supabase Auth, a new auth user gets a teachers row with the same id.
+do $$ begin
+  if to_regclass('auth.users') is not null then
+    create trigger on_auth_user_created
+      after insert on auth.users
+      for each row execute function public.handle_new_user();
+  end if;
+end $$;
 
 create trigger teachers_updated before update on public.teachers
   for each row execute function public.set_updated_at();
@@ -186,6 +191,17 @@ create table public.material_assets (
 
 create index material_assets_material_idx on public.material_assets (material_id);
 
+-- ---------------------------------------------------------------- uploads (server only)
+-- Raw upload bytes when no object storage is configured. Rows are short-lived.
+create table public.uploads (
+  id text primary key,
+  owner_key text not null,
+  mime text not null,
+  bytes bytea not null,
+  created_at timestamptz not null default now()
+);
+create index uploads_created_idx on public.uploads (created_at);
+
 -- ---------------------------------------------------------------- limits (server only)
 create table public.rate_limits (
   key text not null,
@@ -231,6 +247,7 @@ alter table public.classes enable row level security;
 alter table public.materials enable row level security;
 alter table public.sections enable row level security;
 alter table public.material_assets enable row level security;
+alter table public.uploads enable row level security;
 alter table public.rate_limits enable row level security;
 alter table public.generation_usage enable row level security;
 
