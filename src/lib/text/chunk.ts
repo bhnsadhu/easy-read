@@ -1,4 +1,4 @@
-import { SECTION_TARGET_WORDS, SHORT_MATERIAL_WORDS, type Block, type SectionDraft } from "@/lib/content/types";
+import { SECTION_TARGET_WORDS, SHORT_MATERIAL_WORDS, type Block, type SectionContent, type SectionDraft } from "@/lib/content/types";
 import { countWords, splitSentences } from "./sentences";
 
 const MATH = /[=+\u2212×÷^√∑∫]|\\frac/g;
@@ -100,10 +100,29 @@ function titleFor(blocks: Block[]): string {
   return "Reading";
 }
 
+// Case and punctuation do not count: "The Dust Bowl" matches "the dust bowl."
+export function sameText(a: string, b: string): boolean {
+  const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  return norm(a) === norm(b);
+}
+
+// A heading that repeats the section title is dropped from the body, so the
+// title is shown (and read aloud) once. A heading-only section keeps it.
+export function withoutTitleHeading(content: SectionContent, title: string | null | undefined): SectionContent {
+  const first = content.blocks[0];
+  if (!title || first?.type !== "heading" || content.blocks.length < 2 || !sameText(first.text, title)) return content;
+  return { blocks: content.blocks.slice(1) };
+}
+
+function toSection(position: number, blocks: Block[]): SectionDraft {
+  const title = titleFor(blocks);
+  return { position, title, original: withoutTitleHeading({ blocks }, title) };
+}
+
 export function chunkIntoSections(blocks: Block[]): SectionDraft[] {
   const total = blocks.reduce((a, b) => a + blockWords(b), 0);
   if (!blocks.length) return [];
-  if (total < SHORT_MATERIAL_WORDS) return [{ position: 0, title: titleFor(blocks), original: { blocks } }];
+  if (total < SHORT_MATERIAL_WORDS) return [toSection(0, blocks)];
 
   // Oversized paragraphs are split at sentence boundaries first.
   const units: Block[] = [];
@@ -124,11 +143,11 @@ export function chunkIntoSections(blocks: Block[]): SectionDraft[] {
     } else units.push(b);
   }
 
-  const sections: SectionDraft[] = [];
+  const groups: Block[][] = [];
   let cur: Block[] = [];
   let words = 0;
   const flush = () => {
-    if (cur.length) sections.push({ position: sections.length, title: titleFor(cur), original: { blocks: cur } });
+    if (cur.length) groups.push(cur);
     cur = [];
     words = 0;
   };
@@ -141,11 +160,11 @@ export function chunkIntoSections(blocks: Block[]): SectionDraft[] {
   }
   flush();
   // A tiny trailing section joins the previous one.
-  const last = sections.at(-1);
-  const prev = sections.at(-2);
-  if (last && prev && last.original.blocks.reduce((a, b) => a + blockWords(b), 0) < 40) {
-    prev.original.blocks.push(...last.original.blocks);
-    sections.pop();
+  const last = groups.at(-1);
+  const prev = groups.at(-2);
+  if (last && prev && last.reduce((a, b) => a + blockWords(b), 0) < 40) {
+    prev.push(...last);
+    groups.pop();
   }
-  return sections;
+  return groups.map((g, i) => toSection(i, g));
 }

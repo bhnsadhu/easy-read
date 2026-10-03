@@ -9,6 +9,7 @@ import type { PublicMaterial } from "@/lib/data/public";
 import type { SectionContent } from "@/lib/content/types";
 import { createTtsEngine, type SpeakUnit, type TtsEngine, type TtsState } from "@/lib/tts";
 import { syllabify } from "@/lib/text/syllables";
+import { sameText, withoutTitleHeading } from "@/lib/text/chunk";
 
 type Level = "original" | "medium" | "simple";
 const LEVEL_LABEL: Record<Level, string> = { original: "Original", medium: "Plain", simple: "Simple" };
@@ -28,12 +29,23 @@ function loadPrefs(): Prefs {
 
 type Unit = SpeakUnit & { section: number; block: number; sent: number };
 
-function flatten(sections: PublicMaterial["sections"], level: Level): Unit[] {
+type ReaderSection = PublicMaterial["sections"][number];
+
+function contentFor(s: ReaderSection, level: Level): SectionContent {
+  return withoutTitleHeading(level === "original" ? s.original : (s.levels[level] ?? s.original), s.title);
+}
+
+// The first section's title is not repeated when it matches the page title.
+function showsTitle(s: ReaderSection, si: number, docTitle: string): boolean {
+  return !(si === 0 && s.title && sameText(s.title, docTitle));
+}
+
+function flatten(sections: PublicMaterial["sections"], level: Level, docTitle: string): Unit[] {
   const units: Unit[] = [];
   sections.forEach((s, si) => {
-    const content: SectionContent = level === "original" ? s.original : (s.levels[level] ?? s.original);
+    const content = contentFor(s, level);
     const title = s.title ?? `Part ${si + 1}`;
-    units.push({ id: `${si}-t`, text: title, section: si, block: -1, sent: 0 });
+    if (showsTitle(s, si, docTitle)) units.push({ id: `${si}-t`, text: title, section: si, block: -1, sent: 0 });
     content.blocks.forEach((b, bi) => {
       const push = (text: string, sent: number) => units.push({ id: `${si}-${bi}-${sent}`, text, section: si, block: bi, sent });
       if (b.type === "heading") push(b.text, 0);
@@ -60,7 +72,7 @@ export function Reader({ material }: { material: PublicMaterial }) {
   const [rulerY, setRulerY] = useState<number | null>(null);
   const [noVoices, setNoVoices] = useState(false);
   const engine = useRef<TtsEngine | null>(null);
-  const units = useMemo(() => flatten(material.sections, level), [material.sections, level]);
+  const units = useMemo(() => flatten(material.sections, level, material.title), [material.sections, level, material.title]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- preferences live only in this browser
@@ -141,7 +153,7 @@ export function Reader({ material }: { material: PublicMaterial }) {
       </header>
 
       <main className={clsx("mx-auto px-4 pb-40 pt-8", fontClass)} style={{ maxWidth: `${prefs.width}ch`, fontSize: prefs.size, lineHeight: prefs.line, letterSpacing: `${prefs.letter}em`, wordSpacing: `${prefs.word}em` }}>
-        <h1 className="mb-2 font-bold" style={{ fontSize: "1.5em", lineHeight: 1.25 }}>{material.title}</h1>
+        <h1 id="doc-title" className="mb-2 font-bold" style={{ fontSize: "1.5em", lineHeight: 1.25 }}>{material.title}</h1>
         {material.tldr && material.tldr.length > 0 && (
           <ul className="mb-8 list-disc rounded-lg bg-accent-soft/60 p-4 pl-9" style={{ fontSize: "0.95em" }}>{material.tldr.map((t, i) => <li key={i}>{t}</li>)}</ul>
         )}
@@ -162,7 +174,8 @@ export function Reader({ material }: { material: PublicMaterial }) {
         )}
 
         {material.sections.map((s, si) => {
-          const content: SectionContent = level === "original" ? s.original : (s.levels[level] ?? s.original);
+          const content = contentFor(s, level);
+          const titled = showsTitle(s, si, material.title);
           const unitIndex = (id: string) => units.findIndex((u) => u.id === id);
           const Sentence = ({ id, text, as: Tag = "span" }: { id: string; text: string; as?: "span" | "h2" | "li" | "p" }) => {
             const i = unitIndex(id);
@@ -196,8 +209,8 @@ export function Reader({ material }: { material: PublicMaterial }) {
             );
           };
           return (
-            <section key={s.id} className="mb-10" aria-labelledby={`sec-${si}`}>
-              <h2 id={`sec-${si}`} className="mb-1 font-bold" style={{ fontSize: "1.25em" }}><Sentence id={`${si}-t`} text={s.title ?? `Part ${si + 1}`} /></h2>
+            <section key={s.id} className="mb-10" aria-labelledby={titled ? `sec-${si}` : "doc-title"}>
+              {titled && <h2 id={`sec-${si}`} className="mb-1 font-bold" style={{ fontSize: "1.25em" }}><Sentence id={`${si}-t`} text={s.title ?? `Part ${si + 1}`} /></h2>}
               {s.about && <p className="mb-4 text-ink-muted" style={{ fontSize: "0.9em" }}>{s.about}</p>}
               <div className="flex flex-col" style={{ gap: "2em" }}>
                 {content.blocks.map((b, bi) => {

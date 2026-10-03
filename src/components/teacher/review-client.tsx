@@ -160,11 +160,11 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
                   <div className="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
                       <h3 className="mb-2 text-xs font-bold text-ink-muted">Before</h3>
-                      <div className="rounded-md border border-border-strong bg-surface-sunken p-4" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: 13, lineHeight: 1.2, textAlign: "justify" }}><ContentView content={s.original} dense /></div>
+                      <div className="rounded-md border border-border-strong bg-surface-sunken p-4" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: 13, lineHeight: 1.2, textAlign: "justify" }}><ContentView content={s.original} title={s.title} dense /></div>
                     </div>
                     <div>
                       <h3 className="mb-2 text-xs font-bold text-ink-muted">After · {LEVEL_LABEL[level]}</h3>
-                      <div data-reading-bg="cream" className="rounded-md border border-border bg-surface p-4 text-ink" style={{ fontSize: 18, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em" }}>{adapted ? <ContentView content={adapted} /> : <p className="text-ink-faint">Not generated for this level.</p>}</div>
+                      <div data-reading-bg="cream" className="rounded-md border border-border bg-surface p-4 text-ink" style={{ fontSize: 18, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em" }}>{adapted ? <ContentView content={adapted} title={s.title} /> : <p className="text-ink-faint">Not generated for this level.</p>}</div>
                     </div>
                   </div>
                 </article>

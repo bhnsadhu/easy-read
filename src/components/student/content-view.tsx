@@ -1,10 +1,12 @@
 import type { SectionContent } from "@/lib/content/types";
+import { withoutTitleHeading } from "@/lib/text/chunk";
 
 // Plain renderer for teacher review (no read-aloud). Never renders HTML.
-export function ContentView({ content, dense = false }: { content: SectionContent; dense?: boolean }) {
+// Pass the section title so a heading repeating it is not shown twice.
+export function ContentView({ content, title, dense = false }: { content: SectionContent; title?: string | null; dense?: boolean }) {
   return (
     <div className={dense ? "flex flex-col gap-2" : "flex flex-col gap-5"}>
-      {content.blocks.map((b, i) => {
+      {withoutTitleHeading(content, title).blocks.map((b, i) => {
         switch (b.type) {
           case "heading":
             return <p key={i} className={dense ? "font-bold" : "text-xl font-bold"}>{b.text}</p>;
