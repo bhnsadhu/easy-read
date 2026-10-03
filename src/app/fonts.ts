@@ -5,6 +5,8 @@ export const atkinson = Atkinson_Hyperlegible_Next({
   subsets: ["latin", "latin-ext"],
   variable: "--font-atkinson",
   display: "swap",
+  // next/font has no metric overrides for this family yet; avoids a dev warning.
+  adjustFontFallback: false,
 });
 
 export const fraunces = Fraunces({

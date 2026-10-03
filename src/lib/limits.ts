@@ -29,7 +29,7 @@ export async function enforceDailyGenerationCap(subject: string, capOverride?: n
 
 export const LIMITS = {
   anonIngestPerHour: 20,
-  anonMaterialsPerDay: 3,
+  anonMaterialsPerDay: 10,
   teacherIngestPerHour: 60,
   studentPagePerMinute: 120,
   processCallsPerMinute: 120,

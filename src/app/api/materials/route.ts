@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (owner.kind === "teacher") {
       await enforceDailyGenerationCap(owner.sub);
     } else {
-      await enforceRateLimit(`anon-material:${ip}`, LIMITS.anonMaterialsPerDay, 86_400, "You've tried ReadEasy a few times today. Sign in to keep going, free.");
+      await enforceRateLimit(`anon-material:${ip}`, LIMITS.anonMaterialsPerDay, 86_400, "You've used today's free tries on this device. Sign in to keep going, free.");
     }
 
     // Re-check on the final text: redaction may have happened client-side.
