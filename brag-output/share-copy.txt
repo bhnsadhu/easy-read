@@ -1,0 +1,1 @@
+One in five students can't get through the readings they're handed. ReadEasy turns any handout into short, plain, big-type text that reads itself aloud, checks that every number, date, and name survived the rewrite, and gives the class one link. Students never log in: https://easy-read-lilac.vercel.app
