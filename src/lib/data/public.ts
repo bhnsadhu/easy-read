@@ -11,6 +11,7 @@ export type PublicClass = {
   handle: string;
   theme: string;
   welcome: string | null;
+  code: string;
   materials: { token: string; title: string; listen_seconds: number; section_count: number; language: string; published_at: string | null }[];
 };
 

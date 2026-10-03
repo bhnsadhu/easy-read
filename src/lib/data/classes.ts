@@ -4,18 +4,8 @@ import { ConflictError, NotFoundError, type ClassRow, type GradeBand } from "./t
 
 const teacher = (sub: string): DbContext => ({ role: "authenticated", sub });
 
-export const HANDLE_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
-
-export function normalizeHandle(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/['".]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-}
+export { HANDLE_RE, normalizeHandle } from "@/lib/handles";
+import { HANDLE_RE } from "@/lib/handles";
 
 export async function listClasses(sub: string): Promise<ClassRow[]> {
   return withDb(teacher(sub), async (q) => (await q<ClassRow>("select * from classes order by created_at")).rows);

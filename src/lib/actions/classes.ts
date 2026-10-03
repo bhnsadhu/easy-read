@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
-import { createClass, deleteClass as deleteClassRow, HANDLE_RE, isHandleAvailable, normalizeHandle, updateClass } from "@/lib/data/classes";
+import { createClass, deleteClass as deleteClassRow, isHandleAvailable, updateClass } from "@/lib/data/classes";
+import { HANDLE_RE, normalizeHandle } from "@/lib/handles";
 import { invalidateClass } from "@/lib/data/public-cached";
 import { ConflictError, NotFoundError } from "@/lib/data/types";
 import { classThemes } from "@/lib/brand";

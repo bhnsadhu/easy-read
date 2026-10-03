@@ -1,6 +1,5 @@
 import "server-only";
 import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import type { Db, DbContext, Query } from "./types";
@@ -21,7 +20,7 @@ const SUPABASE_SHIM = `
 `;
 
 export async function createPgliteDb(dataDir?: string): Promise<Db> {
-  const db = new PGlite(dataDir, { extensions: { citext } });
+  const db = dataDir ? new PGlite(dataDir) : new PGlite();
   const applied = await db.query<{ n: string }>("select to_regclass('public.materials')::text as n").catch(() => ({ rows: [] as { n: string }[] }));
   if (!applied.rows[0]?.n) {
     await db.exec(SUPABASE_SHIM);

@@ -1,5 +1,4 @@
 import { PGlite } from "@electric-sql/pglite";
-import { citext } from "@electric-sql/pglite/contrib/citext";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -21,7 +20,7 @@ const SUPABASE_SHIM = `
 `;
 
 export async function createTestDb() {
-  const db = new PGlite({ extensions: { citext } });
+  const db = new PGlite();
   await db.exec(SUPABASE_SHIM);
   const dir = path.resolve(__dirname, "../../supabase/migrations");
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {

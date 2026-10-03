@@ -13,6 +13,7 @@ export const brand = {
     accent: "#0E6F63",
     highlight: "#FFE66D",
     dark: "#1B1A18",
+    transparent: "#00000000",
   },
 } as const;
 

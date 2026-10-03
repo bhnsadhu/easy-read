@@ -1,8 +1,6 @@
 -- ReadEasy schema. Every table has RLS. Anonymous readers never touch tables
 -- directly; they call the security-definer RPCs at the bottom with a share token.
 
-create extension if not exists citext;
-
 -- ---------------------------------------------------------------- enums
 create type public.grade_band as enum ('3-5', '6-8', '9-12');
 create type public.class_theme as enum ('teal', 'plum', 'rust', 'indigo', 'forest', 'berry');
@@ -50,7 +48,7 @@ end $$;
 -- ---------------------------------------------------------------- teachers
 create table public.teachers (
   id uuid primary key references auth.users (id) on delete cascade,
-  email citext not null,
+  email text not null check (email = lower(email)),
   display_name text,
   daily_generation_cap int not null default 40,
   created_at timestamptz not null default now(),
@@ -61,7 +59,7 @@ create table public.teachers (
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.teachers (id, email) values (new.id, new.email)
+  insert into public.teachers (id, email) values (new.id, lower(new.email))
   on conflict (id) do nothing;
   return new;
 end $$;
@@ -273,6 +271,7 @@ returns jsonb language sql stable security definer set search_path = public as $
     'handle', c.handle,
     'theme', c.theme,
     'welcome', c.welcome,
+    'code', c.code,
     'materials', coalesce((
       select jsonb_agg(jsonb_build_object(
         'token', m.share_token,
