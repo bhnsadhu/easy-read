@@ -2,6 +2,6 @@
 // system preference is handled by CSS when nothing is saved.
 const script = `(function(){try{var t=localStorage.getItem("readeasy:theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})();`;
 
-export function ThemeScript() {
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+export function ThemeScript({ nonce }: { nonce?: string }) {
+  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: script }} />;
 }

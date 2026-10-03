@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { fontVariables } from "./fonts";
 import { brand } from "@/lib/brand";
 import { ThemeScript } from "@/components/theme-script";
@@ -20,11 +21,12 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" className={fontVariables} suppressHydrationWarning>
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
       </head>
       <body>{children}</body>
     </html>
