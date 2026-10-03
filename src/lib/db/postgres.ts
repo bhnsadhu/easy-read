@@ -4,7 +4,17 @@ import type { Db, DbContext, Query } from "./types";
 
 // Production driver: Supabase's Supavisor pooler (transaction mode, prepare: false).
 export function createPostgresDb(url: string): Db {
-  const sql = postgres(url, { prepare: false, max: 5, idle_timeout: 20, connect_timeout: 10 });
+  const sql = postgres(url, {
+    prepare: false,
+    max: 5,
+    idle_timeout: 20,
+    connect_timeout: 10,
+    types: {
+      // Callers pass json/jsonb params already stringified (PGlite needs that).
+      // postgres.js would stringify them again and store a JSON string.
+      json: { to: 114, from: [114, 3802], serialize: (x: unknown) => (typeof x === "string" ? x : JSON.stringify(x)), parse: (x: string) => JSON.parse(x) },
+    },
+  });
 
   return {
     async run(ctx: DbContext, fn) {

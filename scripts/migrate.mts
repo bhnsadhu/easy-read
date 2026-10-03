@@ -16,6 +16,9 @@ const SHIM = `
     if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
     if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
   end $$;
+  -- The app connects as the database owner and switches role per request.
+  -- On Postgres 16+ (Neon) a role's creator cannot SET ROLE to it without this.
+  grant anon, authenticated to current_user;
   grant usage on schema public to anon, authenticated;
   create schema if not exists auth;
   create table if not exists auth.users (id uuid primary key default gen_random_uuid(), email text unique);
