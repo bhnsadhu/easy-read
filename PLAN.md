@@ -10,6 +10,7 @@ If you are a new session told "Continue from PLAN.md": read this file top to bot
 - Built but not wired into the UI yet: URL import (`/api/ingest` supports it; no field on the landing page), quick checks (generated and validated, not shown to students), image descriptions, reading ruler keyboard control, PWA service worker, per-section inline editing UI (server action exists), reorder/duplicate/rotate (server actions exist).
 - Not done (cut for the MVP, see Known limitations): Playwright e2e suite beyond the smoke script, cross-browser runs, load test, Lighthouse CI, break-it rounds, DEMO.md/PRIVACY.md/BUGS.md, seed script, deploy.
 - Environment limits: no Docker; this sandbox cannot download Playwright's WebKit/Firefox, so local runs use the preinstalled Chromium via `executablePath`.
+- Landing page is a live Before/After demo: four one-click sample readings, adapted entirely in the browser by the built-in rule-based adapter, with grade estimates, Plain/Simple toggle, and Listen with sentence highlighting; one button makes the class version. Review page shows Before (dense handout styling) vs After (reader styling) and a positive Fact Guard verdict.
 - Last completed item: production-readiness pass (upload button, /api/health, production secret check, CI runs the smoke test, README/DEMO/PRIVACY written). Smoke test: 18/18 steps.
 
 ## Architecture (decided; see DECISIONS.md and RESEARCH.md §4)

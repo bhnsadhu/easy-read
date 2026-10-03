@@ -42,7 +42,7 @@ const LEVEL_LABEL: Record<Level, string> = { original: "Original", medium: "Plai
 export function ReviewClient({ material, sections, signedIn, classes, appUrl }: Props) {
   const router = useRouter();
   const [progress, setProgress] = useState<{ total: number; done: number; flagged: number; failed: number; status: string } | null>(null);
-  const [level, setLevel] = useState<Level>("medium");
+  const [level, setLevel] = useState<Level>("simple");
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const processing = material.status === "processing";
@@ -101,6 +101,11 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
                 <p className="text-sm">Fact Guard found facts the rewrite dropped. Those levels show the original wording until you confirm.</p>
               </div>
             )}
+            {flagged.length === 0 && sections.length > 0 && (
+              <div className="rounded-lg border border-success bg-success-soft p-4 text-success" data-testid="fact-guard-ok">
+                <p className="font-bold">Fact Guard checked {sections.length} {sections.length === 1 ? "section" : "sections"}: every number, date, name, and key term from the original is in the rewrite.</p>
+              </div>
+            )}
             {material.tldr && material.tldr.length > 0 && (
               <div className="rounded-lg border border-border bg-surface-raised p-4">
                 <h2 className="text-sm font-bold text-ink-muted">TL;DR</h2>
@@ -154,12 +159,12 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
                   )}
                   <div className="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
-                      <h3 className="mb-2 text-xs font-bold text-ink-muted">Original</h3>
-                      <div className="rounded-md bg-surface p-3 text-base"><ContentView content={s.original} /></div>
+                      <h3 className="mb-2 text-xs font-bold text-ink-muted">Before</h3>
+                      <div className="rounded-md border border-border-strong bg-surface-sunken p-4" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: 13, lineHeight: 1.2, textAlign: "justify" }}><ContentView content={s.original} dense /></div>
                     </div>
                     <div>
-                      <h3 className="mb-2 text-xs font-bold text-ink-muted">{LEVEL_LABEL[level]}</h3>
-                      <div className="rounded-md bg-surface p-3 text-base">{adapted ? <ContentView content={adapted} /> : <p className="text-ink-faint">Not generated for this level.</p>}</div>
+                      <h3 className="mb-2 text-xs font-bold text-ink-muted">After · {LEVEL_LABEL[level]}</h3>
+                      <div data-reading-bg="cream" className="rounded-md border border-border bg-surface p-4 text-ink" style={{ fontSize: 18, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em" }}>{adapted ? <ContentView content={adapted} /> : <p className="text-ink-faint">Not generated for this level.</p>}</div>
                     </div>
                   </div>
                 </article>

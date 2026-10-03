@@ -24,7 +24,7 @@ export default async function DashboardPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl">Your classes</h1>
-            <p className="text-ink-muted">Every published material lives on your class link.</p>
+            <p className="text-ink-muted">One link per class. Every reading you publish shows up there.</p>
           </div>
         </div>
         <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

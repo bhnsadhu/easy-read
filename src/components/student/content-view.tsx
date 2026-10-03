@@ -1,13 +1,13 @@
 import type { SectionContent } from "@/lib/content/types";
 
 // Plain renderer for teacher review (no read-aloud). Never renders HTML.
-export function ContentView({ content }: { content: SectionContent }) {
+export function ContentView({ content, dense = false }: { content: SectionContent; dense?: boolean }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className={dense ? "flex flex-col gap-2" : "flex flex-col gap-5"}>
       {content.blocks.map((b, i) => {
         switch (b.type) {
           case "heading":
-            return <p key={i} className="text-lg font-bold">{b.text}</p>;
+            return <p key={i} className={dense ? "font-bold" : "text-xl font-bold"}>{b.text}</p>;
           case "paragraph":
             return <p key={i}>{b.sentences.join(" ")}</p>;
           case "list":

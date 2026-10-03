@@ -266,12 +266,36 @@ export function simplifySentence(sentence: string, level: Level): string[] {
   });
 }
 
+// "It needs three things: sunlight, water, and carbon dioxide." -> lead sentence + a bullet list.
+const ENUMERATION = /^(.{8,90}?):\s+(.+?,\s*.+?(?:,|\s+and|\s+or)\s+.+?)[.!?]?$/;
+
+export function toListBlocks(sentences: string[]): Block[] {
+  const out: Block[] = [];
+  let run: string[] = [];
+  const flush = () => {
+    if (run.length) out.push({ type: "paragraph", sentences: run });
+    run = [];
+  };
+  for (const s of sentences) {
+    const m = s.match(ENUMERATION);
+    const items = m ? m[2]!.split(/,\s*(?:and\s+|or\s+)?|\s+and\s+|\s+or\s+/).map((i) => i.trim()).filter(Boolean) : [];
+    if (m && items.length >= 3 && items.every((i) => i.split(" ").length <= 8)) {
+      run.push(`${m[1]!.trim()}:`);
+      flush();
+      out.push({ type: "list", ordered: false, items: items.map((i) => [capitalize(i)]) });
+    } else run.push(s);
+  }
+  flush();
+  return out;
+}
+
 export function simplifyContent(content: SectionContent, level: Level): SectionContent {
-  const blocks: Block[] = content.blocks.map((b) => {
-    if (b.type === "paragraph") return { type: "paragraph", sentences: b.sentences.flatMap((s) => simplifySentence(s, level)) };
+  const blocks: Block[] = content.blocks.flatMap((b) => {
+    if (b.type === "paragraph") return toListBlocks(b.sentences.flatMap((s) => simplifySentence(s, level)));
     if (b.type === "list") return { type: "list", ordered: b.ordered, items: b.items.map((item) => item.flatMap((s) => simplifySentence(s, level))) };
     if (b.type === "heading") return { type: "heading", level: b.level, text: swapVocabulary(b.text) };
     return b;
   });
   return { blocks };
 }
+

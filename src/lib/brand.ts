@@ -3,9 +3,9 @@
 // src/styles/tokens.css; the token test allows raw colors in this file only.
 export const brand = {
   name: "ReadEasy",
-  tagline: "Every reading, ready for every reader.",
+  tagline: "Dense readings, made readable.",
   description:
-    "Upload a reading. Share one link. Every student can read it, listen to it, and understand it.",
+    "Paste any class reading. Get short sections, plain sentences, and big spaced text that reads itself aloud. Share one link.",
   colors: {
     surface: "#FBF7EF",
     ink: "#2B2620",
