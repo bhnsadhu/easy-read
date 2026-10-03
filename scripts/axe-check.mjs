@@ -11,6 +11,7 @@ const page = await ctx.newPage();
 let failures = 0;
 
 async function audit(name) {
+  await page.waitForFunction(() => document.title.length > 0, null, { timeout: 10000 }).catch(() => undefined);
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "best-practice"]).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   const minor = results.violations.filter((v) => v.impact !== "serious" && v.impact !== "critical");

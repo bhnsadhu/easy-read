@@ -16,20 +16,12 @@ import type { SectionContent } from "@/lib/content/types";
 
 // The whole adaptation runs in the browser here (no server, no account), so
 // judges can click a sample and see the result instantly.
-function firstSentence(c: SectionContent): string {
-  for (const b of c.blocks) {
-    if (b.type === "paragraph" && b.sentences[0]) return b.sentences[0];
-    if (b.type === "list" && b.items[0]?.[0]) return b.items[0][0];
-  }
-  return "";
-}
-
 function adapt(text: string, level: Level) {
   const sections = chunkIntoSections(structureText(text));
   return sections.map((s) => {
     const adapted = simplifyContent(s.original, level);
     const words = pickKeyWords(plainText(s.original), 4).map((w) => ({ word: w, syllables: syllabify(w) }));
-    return { title: s.title, original: s.original, adapted, lead: firstSentence(adapted), words };
+    return { title: s.title, original: s.original, adapted, words };
   });
 }
 
@@ -164,7 +156,6 @@ export function BeforeAfter() {
             {sections.map((s, si) => (
               <section key={si} className="mb-8">
                 <h3 className="mb-2 text-xl font-bold"><Sentence id={`${si}-t`} text={s.title} /></h3>
-                {s.lead && <p className="mb-3 rounded-md bg-accent-soft px-3 py-2 text-ink" style={{ fontSize: "0.85em" }}><span className="font-bold">In short:</span> {s.lead}</p>}
                 {s.words.length > 0 && (
                   <p className="mb-4 flex flex-wrap gap-2" style={{ fontSize: "0.8em" }} aria-label="Key words with syllables">
                     {s.words.map((w) => <span key={w.word} className="rounded-full border border-border-strong bg-surface-raised px-2.5 py-0.5"><span className="font-bold">{w.word}</span> <span className="text-ink-muted">{w.syllables.join("·")}</span></span>)}

@@ -29,10 +29,15 @@ function looksLikeHeading(line: string, next: string | undefined): boolean {
 export function structureText(text: string): Block[] {
   const blocks: Block[] = [];
   const chunks = text.replace(/\r\n?/g, "\n").split(/\n{2,}/).map((c) => c.trim()).filter(Boolean);
-  for (const chunk of chunks) {
+  for (const [ci, chunk] of chunks.entries()) {
     const lines = chunk.split("\n").map((l) => l.trim()).filter(Boolean);
     if (!lines.length) continue;
     const first = lines[0]!;
+    // A short first line with no end punctuation, on its own, is the title.
+    if (ci === 0 && lines.length === 1 && chunks.length > 1 && first.split(/\s+/).length <= 12 && !/[.!?]$/.test(first)) {
+      blocks.push({ type: "heading", level: 2, text: sentenceCase(first.replace(/^#+\s*/, "")) });
+      continue;
+    }
     const md = first.match(/^(#{1,3})\s+(.+)$/);
     if (md && lines.length === 1) {
       blocks.push({ type: "heading", level: md[1]!.length >= 3 ? 3 : 2, text: sentenceCase(md[2]!.trim()) });
