@@ -9,15 +9,32 @@ import { SAMPLES, type Sample } from "@/lib/samples";
 import { chunkIntoSections, structureText } from "@/lib/text/chunk";
 import { simplifyContent, type Level } from "@/lib/text/simplify";
 import { estimateReadability, plainText } from "@/lib/text/readability";
+import { pickKeyWords } from "@/lib/text/wordpreview";
+import { syllabify } from "@/lib/text/syllables";
 import { createTtsEngine, type SpeakUnit, type TtsEngine, type TtsState } from "@/lib/tts";
 import type { SectionContent } from "@/lib/content/types";
 
 // The whole adaptation runs in the browser here (no server, no account), so
 // judges can click a sample and see the result instantly.
+function firstSentence(c: SectionContent): string {
+  for (const b of c.blocks) {
+    if (b.type === "paragraph" && b.sentences[0]) return b.sentences[0];
+    if (b.type === "list" && b.items[0]?.[0]) return b.items[0][0];
+  }
+  return "";
+}
+
 function adapt(text: string, level: Level) {
   const sections = chunkIntoSections(structureText(text));
-  return sections.map((s) => ({ title: s.title, original: s.original, adapted: simplifyContent(s.original, level) }));
+  return sections.map((s) => {
+    const adapted = simplifyContent(s.original, level);
+    const words = pickKeyWords(plainText(s.original), 4).map((w) => ({ word: w, syllables: syllabify(w) }));
+    return { title: s.title, original: s.original, adapted, lead: firstSentence(adapted), words };
+  });
 }
+
+type Font = "default" | "lexend" | "opendyslexic";
+type Bg = "cream" | "blue" | "dark";
 
 function units(sections: { title: string; adapted: SectionContent }[]): SpeakUnit[] {
   const out: SpeakUnit[] = [];
@@ -39,6 +56,9 @@ export function BeforeAfter() {
   const [state, setState] = useState<TtsState>("idle");
   const [current, setCurrent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [font, setFont] = useState<Font>("default");
+  const [size, setSize] = useState(19);
+  const [bg, setBg] = useState<Bg>("cream");
   const engine = useRef<TtsEngine | null>(null);
 
   const sections = useMemo(() => adapt(sample.text, level), [sample, level]);
@@ -128,10 +148,28 @@ export function BeforeAfter() {
               </div>
             </div>
           </div>
-          <div data-reading-bg="cream" className="h-[520px] overflow-auto rounded-lg border border-border bg-surface p-5 text-ink" style={{ fontSize: 19, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em", maxWidth: "100%" }} aria-label="Adapted reading">
+          <div className="flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="Reading settings">
+            {([["default", "Atkinson"], ["lexend", "Lexend"], ["opendyslexic", "OpenDyslexic"]] as const).map(([v, label]) => (
+              <button key={v} type="button" aria-pressed={font === v} onClick={() => setFont(v)} className={clsx("rounded-md border px-2.5 py-1 font-bold", font === v ? "border-accent bg-accent-soft" : "border-border-strong")}>{label}</button>
+            ))}
+            <span className="mx-1 text-ink-faint">|</span>
+            <button type="button" aria-label="Smaller text" onClick={() => setSize((n) => Math.max(15, n - 2))} className="rounded-md border border-border-strong px-2.5 py-1 font-bold">A−</button>
+            <button type="button" aria-label="Bigger text" onClick={() => setSize((n) => Math.min(30, n + 2))} className="rounded-md border border-border-strong px-2.5 py-1 font-bold">A+</button>
+            <span className="mx-1 text-ink-faint">|</span>
+            {([["cream", "Cream"], ["blue", "Blue"], ["dark", "Dark"]] as const).map(([v, label]) => (
+              <button key={v} type="button" aria-pressed={bg === v} onClick={() => setBg(v)} className={clsx("rounded-md border px-2.5 py-1 font-bold", bg === v ? "border-accent bg-accent-soft" : "border-border-strong")}>{label}</button>
+            ))}
+          </div>
+          <div data-reading-bg={bg} className={clsx("h-[520px] overflow-auto rounded-lg border border-border bg-surface p-5 text-ink", font === "lexend" ? "font-lexend" : font === "opendyslexic" ? "font-opendyslexic" : "font-sans")} style={{ fontSize: size, lineHeight: 1.6, letterSpacing: "0.04em", wordSpacing: "0.16em", maxWidth: "100%" }} aria-label="Adapted reading">
             {sections.map((s, si) => (
-              <section key={si} className="mb-7">
-                <h4 className="mb-3 text-xl font-bold"><Sentence id={`${si}-t`} text={s.title} /></h4>
+              <section key={si} className="mb-8">
+                <h4 className="mb-2 text-xl font-bold"><Sentence id={`${si}-t`} text={s.title} /></h4>
+                {s.lead && <p className="mb-3 rounded-md bg-accent-soft px-3 py-2 text-ink" style={{ fontSize: "0.85em" }}><span className="font-bold">In short:</span> {s.lead}</p>}
+                {s.words.length > 0 && (
+                  <p className="mb-4 flex flex-wrap gap-2" style={{ fontSize: "0.8em" }} aria-label="Key words with syllables">
+                    {s.words.map((w) => <span key={w.word} className="rounded-full border border-border-strong bg-surface-raised px-2.5 py-0.5"><span className="font-bold">{w.word}</span> <span className="text-ink-muted">{w.syllables.join("·")}</span></span>)}
+                  </p>
+                )}
                 <div className="flex flex-col gap-5">
                   {s.adapted.blocks.map((b, bi) => {
                     if (b.type === "heading") return <p key={bi} className="font-bold"><Sentence id={`${si}-${bi}-0`} text={b.text} /></p>;

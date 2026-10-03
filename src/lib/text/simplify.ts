@@ -81,6 +81,27 @@ const VERBS: Record<string, [string, string, string, string]> = {
   depict: ["show", "shows", "showed", "showing"],
   state: ["say", "says", "said", "saying"],
   reveal: ["show", "shows", "showed", "showing"],
+  synthesize: ["make", "makes", "made", "making"],
+  encompass: ["cover", "covers", "covered", "covering"],
+  transport: ["carry", "carries", "carried", "carrying"],
+  relocate: ["move", "moves", "moved", "moving"],
+  endure: ["last", "lasts", "lasted", "lasting"],
+  designate: ["set aside", "sets aside", "set aside", "setting aside"],
+  conduct: ["run", "runs", "ran", "running"],
+  originate: ["come", "comes", "came", "coming"],
+  position: ["place", "places", "placed", "placing"],
+  analyze: ["study", "studies", "studied", "studying"],
+  analyse: ["study", "studies", "studied", "studying"],
+  ensure: ["make sure", "makes sure", "made sure", "making sure"],
+  propose: ["suggest", "suggests", "suggested", "suggesting"],
+  submit: ["hand in", "hands in", "handed in", "handing in"],
+  influence: ["affect", "affects", "affected", "affecting"],
+  promote: ["push for", "pushes for", "pushed for", "pushing for"],
+  exceed: ["go over", "goes over", "went over", "going over"],
+  accompany: ["go with", "goes with", "went with", "going with"],
+  anchor: ["hold down", "holds down", "held down", "holding down"],
+  expose: ["put", "puts", "put", "putting"],
+  announce: ["say", "says", "said", "saying"],
 };
 
 const VERB_FORMS = new Map<string, string>();
@@ -116,7 +137,20 @@ const WORDS: Record<string, string> = {
   nutrients: "food", nutrition: "food", consumption: "use", utilization: "use", production: "making", construction: "building",
   organism: "living thing", organisms: "living things", species: "kinds of living things", habitat: "home", habitats: "homes",
   precipitation: "rain or snow", atmosphere: "air", vegetation: "plants",
+  prolonged: "long", severe: "very bad", intensive: "heavy", catastrophic: "terrible", devastating: "terrible",
+  consequences: "effects", consequence: "effect", employment: "work", techniques: "ways", technique: "way",
+  quantity: "amount", quantities: "amounts", estimated: "about", initiative: "plan", respondents: "people who answered",
+  byproduct: "leftover", specialized: "special", biochemical: "chemical", carbohydrates: "sugars", uninhabitable: "impossible to live on",
+  physician: "doctor", journalist: "reporter", migration: "move", migrants: "people who moved", agricultural: "farm",
+  investigation: "experiment", procedure: "steps", simultaneously: "at the same time",
+  horizontal: "side-to-side", vertical: "up-and-down", hypothesis: "best guess", relationship: "link",
+  regardless: "no matter what", portions: "parts",
+  permitted: "allowed", required: "needed", obtained: "got", demonstrations: "shows", collection: "set",
+  equipment: "gear", household: "home", cardholders: "members", renewed: "extended", period: "time",
+  anticipates: "expects", designated: "set aside", conducted: "run", prevented: "stopped",
 };
+
+const FILLERS = /\b(basically|essentially|actually|in fact|of course|indeed|as a matter of fact|it is important to note that|it should be noted that|in other words|needless to say|for all intents and purposes)\b,?\s*/gi;
 
 const PHRASES: [RegExp, string][] = [
   [/\bin order to\b/gi, "to"],
@@ -184,7 +218,7 @@ function keepCase(original: string, replacement: string): string {
 }
 
 export function swapVocabulary(sentence: string): string {
-  let s = sentence;
+  let s = sentence.replace(FILLERS, "");
   for (const [re, rep] of PHRASES) s = s.replace(re, (m) => keepCase(m, rep));
   s = s.replace(/\b([A-Za-z]+)\b/g, (m) => {
     const lower = m.toLowerCase();
@@ -258,8 +292,8 @@ export function simplifySentence(sentence: string, level: Level): string[] {
   // Simple: long remaining sentences are split again at the first comma past the middle,
   // unless they open with a subordinate clause (splitting "While X, Y" leaves a fragment).
   return parts.flatMap((p) => {
-    if (words(p) <= 18 || /^(while|although|because|if|when|since|after|before|unless|even though|as|once|until|whenever)\b/i.test(p)) return [p];
-    const half = Math.floor(p.length / 2);
+    if (words(p) <= 14 || /^(while|although|because|if|when|since|after|before|unless|even though|as|once|until|whenever)\b/i.test(p)) return [p];
+    const half = Math.floor(p.length * 0.4);
     const idx = p.indexOf(", ", half);
     if (idx === -1) return [p];
     return [finish(p.slice(0, idx)), finish(p.slice(idx + 2))].filter(Boolean);
