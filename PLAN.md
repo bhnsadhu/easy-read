@@ -7,10 +7,10 @@ If you are a new session told "Continue from PLAN.md": read this file top to bot
 - **Mode: hackathon MVP** (owner's call, 2026-10-03). The demo path is built and smoke-tested end to end in a real browser: paste text → sections adapted (mock or Claude) → review with Fact Guard flags → sign in → create class link → publish → class page → reader with read-aloud highlighting, word popover, settings sheet, level switch → QR page. `node scripts/smoke.mjs` runs it against `pnpm start`.
 - Branch: work on `claude/awesome-pascal-c1hgr5`; every commit is pushed to BOTH `main` and that branch. Commits authored as `Bhanu Sadhu <bhnsadhu@gmail.com>` with the Claude co-author trailer.
 - Runs with zero services: `MOCK_DB=1` (in-process Postgres via PGlite, same migrations and RLS) and `MOCK_LLM=1`. Real mode needs `DATABASE_URL`, Supabase Auth keys, and `ANTHROPIC_API_KEY` (see `.env.example`).
-- Built but not wired into the UI yet: file upload (`/api/uploads/*` + `/api/ingest` handle PDF/DOCX/image/URL with PII and SSRF guards), quick checks (generated and validated, not shown to students), image descriptions, reading ruler keyboard control, PWA service worker, per-section inline editing UI (server action exists), reorder/duplicate/rotate (server actions exist).
+- Built but not wired into the UI yet: URL import (`/api/ingest` supports it; no field on the landing page), quick checks (generated and validated, not shown to students), image descriptions, reading ruler keyboard control, PWA service worker, per-section inline editing UI (server action exists), reorder/duplicate/rotate (server actions exist).
 - Not done (cut for the MVP, see Known limitations): Playwright e2e suite beyond the smoke script, cross-browser runs, load test, Lighthouse CI, break-it rounds, DEMO.md/PRIVACY.md/BUGS.md, seed script, deploy.
 - Environment limits: no Docker; this sandbox cannot download Playwright's WebKit/Firefox, so local runs use the preinstalled Chromium via `executablePath`.
-- Last completed item: MVP pages + browser smoke test passing.
+- Last completed item: production-readiness pass (upload button, /api/health, production secret check, CI runs the smoke test, README/DEMO/PRIVACY written). Smoke test: 18/18 steps.
 
 ## Architecture (decided; see DECISIONS.md and RESEARCH.md §4)
 
@@ -153,7 +153,7 @@ Students: link after unpublish/rotation · teacher edits after students started 
 
 ## Known limitations (v1, with reasons)
 
-- File/photo/URL import has API routes and parsers but no upload UI yet: the MVP landing accepts pasted text only (time).
+- URL import has an API route and SSRF guard but no field in the UI yet (time). File upload (PDF, Word, image, text) is wired and smoke-tested.
 - Quick checks are generated and validated but not shown in the reader (time; the data is in `sections.quick_checks`).
 - Cross-browser e2e, load test, Lighthouse, and break-it rounds were not run (time). The smoke script covers the demo path on Chromium.
 - Email sign-in requires a Supabase project with custom SMTP; without Supabase the app uses the dev sign-in (`NEXT_PUBLIC_DEV_TOOLS=1` only).

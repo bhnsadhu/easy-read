@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
+import { UploadButton } from "./upload-button";
 
 const SAMPLE = `Photosynthesis: how plants make food
 
@@ -27,6 +28,7 @@ export function TryItForm({ compact = false }: { compact?: boolean }) {
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
 
   async function submit() {
     setBusy(true);
@@ -73,10 +75,23 @@ export function TryItForm({ compact = false }: { compact?: boolean }) {
         minLength={40}
       />
       {error && <p className="text-sm text-danger" role="alert">{error}</p>}
+      {notes.length > 0 && (
+        <ul className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning" role="status">{notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" size="lg" loading={busy} disabled={text.trim().length < 40}>
           Make it readable
         </Button>
+        <UploadButton
+          onError={setError}
+          onExtracted={(e) => {
+            setText(e.text);
+            if (e.title && !title) setTitle(e.title);
+            const n = [...e.warnings];
+            if (e.pii.findings.length) n.push(`${e.pii.summary} Check the text before you continue; names and contact details were kept so you can remove them.`);
+            setNotes(n);
+          }}
+        />
         <Button type="button" variant="ghost" onClick={() => setText(SAMPLE)}>
           Use a sample reading
         </Button>

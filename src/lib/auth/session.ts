@@ -8,7 +8,12 @@ export type Session = { sub: string; email: string };
 export const MOCK_SESSION_COOKIE = "readeasy_mock_session";
 
 function secret(): string {
-  return serverEnv().DRAFT_COOKIE_SECRET ?? "dev-only-secret-change-me";
+  const s = serverEnv().DRAFT_COOKIE_SECRET;
+  if (s && s.length >= 16) return s;
+  if (process.env.NODE_ENV === "production" && !publicEnv.NEXT_PUBLIC_DEV_TOOLS) {
+    throw new Error("DRAFT_COOKIE_SECRET must be set (32+ random characters) in production.");
+  }
+  return "dev-only-secret-change-me";
 }
 
 export function sign(value: string): string {

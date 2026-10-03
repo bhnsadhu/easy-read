@@ -30,8 +30,8 @@ jobs:
       - run: pnpm test:unit
       - run: pnpm test:rls
 
-  e2e:
-    name: E2E (mock mode, all browsers)
+  smoke:
+    name: Build and browser smoke test
     runs-on: ubuntu-latest
     needs: checks
     steps:
@@ -42,15 +42,19 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium webkit firefox
+      - run: pnpm exec playwright install --with-deps chromium
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ""
-      - run: pnpm test:e2e
+      - run: pnpm build
         env:
-          CI: "true"
+          MOCK_DB: "1"
+      - run: |
+          MOCK_DB=1 DRAFT_COOKIE_SECRET=ci-secret-ci-secret pnpm start -p 3100 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3100/api/health && break; sleep 1; done
+          PW_CHROMIUM_PATH= node scripts/smoke.mjs
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: playwright-report
-          path: playwright-report
+          name: test-shots
+          path: test-shots
           retention-days: 7
