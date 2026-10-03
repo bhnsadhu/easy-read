@@ -13,6 +13,7 @@ import { normalizeHandle } from "@/lib/handles";
 import type { FactGuardResult, SectionContent, WordPreviewEntry } from "@/lib/content/types";
 import type { Supports } from "@/lib/data/types";
 import { ContentView } from "@/components/student/content-view";
+import { sameText } from "@/lib/text/chunk";
 
 type Section = {
   id: string;
@@ -132,11 +133,15 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
             {sections.map((s) => {
               const adapted = s.levels[level as "medium" | "simple"];
               const needsAck = s.status === "flagged" && !s.factGuard.acknowledged;
-              const dropped = s.factGuard.missing.flatMap((m) => m.items);
+              // The same fact missing from Plain and Simple is listed once.
+              const dropped = [...new Set(s.factGuard.missing.flatMap((m) => m.items))];
+              const droppedFrom = s.factGuard.missing.map((m) => LEVEL_LABEL[m.level]);
+              // A section titled like the whole reading is labeled by number, not by the title again.
+              const label = s.title && !sameText(s.title, material.title) ? `${s.position + 1}. ${s.title}` : `Part ${s.position + 1}`;
               return (
                 <article key={s.id} className={`rounded-lg border bg-surface-raised p-4 ${needsAck ? "border-warning" : "border-border"}`}>
                   <header className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-lg font-bold">{s.position + 1}. {s.title ?? "Untitled"}</h2>
+                    <h2 className="text-lg font-bold">{label}</h2>
                     <div className="flex items-center gap-2">
                       {s.readability?.original != null && <Badge tone="neutral">Original ≈ grade {s.readability.original}</Badge>}
                       {s.readability?.[level as "medium" | "simple"] != null && <Badge tone="accent">{LEVEL_LABEL[level]} ≈ grade {s.readability[level as "medium" | "simple"]}</Badge>}
@@ -147,7 +152,7 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
                   {s.about && <p className="mt-1 text-sm text-ink-muted">{s.about}</p>}
                   {s.status === "flagged" && (
                     <div className="mt-3 rounded-md bg-warning-soft p-3 text-sm text-warning">
-                      <p className="font-bold">Fact Guard: {dropped.length} {dropped.length === 1 ? "fact was" : "facts were"} dropped in the {s.factGuard.missing.map((m) => LEVEL_LABEL[m.level]).join(" and ")} level: {dropped.join(", ")}.</p>
+                      <p className="font-bold">Fact Guard: {dropped.length} {dropped.length === 1 ? "fact was" : "facts were"} dropped in the {droppedFrom.join(" and ")} {droppedFrom.length === 1 ? "level" : "levels"}: {dropped.join(", ")}.</p>
                       <p>We kept the original wording for that level. Confirm, or regenerate.</p>
                       {needsAck && (
                         <div className="mt-2 flex gap-2">
