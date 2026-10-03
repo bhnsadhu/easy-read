@@ -12,7 +12,8 @@ const serverSchema = z.object({
   MOCK_DB: bool,
   DATABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  DAILY_GENERATION_CAP: z.coerce.number().int().positive().default(40),
+  // 0 = no cap (hackathon default). Set a number in production if you want one.
+  DAILY_GENERATION_CAP: z.coerce.number().int().min(0).default(0),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(25),
   TTS_PROVIDER: z.string().optional(),
   DRAFT_COOKIE_SECRET: z.string().optional(),

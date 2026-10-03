@@ -13,6 +13,7 @@ const service = { role: "service" as const };
 
 // Fixed windows stored in Postgres so every serverless instance shares them.
 export async function enforceRateLimit(key: string, limit: number, windowSeconds: number, message: string): Promise<void> {
+  if (!limit) return;
   const r = await withDb(service, (q) => q<{ n: number }>("select bump_rate_limit($1, $2) as n", [key, windowSeconds]));
   const n = r.rows[0]?.n ?? 0;
   if (n > limit) throw new RateLimitedError(message, windowSeconds);
@@ -20,6 +21,7 @@ export async function enforceRateLimit(key: string, limit: number, windowSeconds
 
 export async function enforceDailyGenerationCap(subject: string, capOverride?: number): Promise<void> {
   const cap = capOverride ?? serverEnv().DAILY_GENERATION_CAP;
+  if (!cap) return;
   const r = await withDb(service, (q) => q<{ n: number }>("select bump_generation_usage($1) as n", [subject]));
   const n = r.rows[0]?.n ?? 0;
   if (n > cap) {

@@ -182,6 +182,8 @@ describe("anonymous access", () => {
 describe("try-before-signup drafts", () => {
   it("anonymous drafts are invisible to teachers until claimed, and claimable once", async () => {
     const draftToken = "draft_abc123";
+    // One anonymous session can create several drafts.
+    await t.as("service", null, (q) => q("insert into materials (draft_token, title, source_type) values ($1, 'First try', 'paste')", [draftToken]));
     const m = await t.as("service", null, (q) =>
       q<{ id: string }>("insert into materials (draft_token, title, source_type) values ($1, 'Try it', 'paste') returning id", [draftToken]),
     );
@@ -195,6 +197,8 @@ describe("try-before-signup drafts", () => {
 
     const seen = await t.as("authenticated", alice, (q) => q("select id from materials where id = $1", [id]));
     expect(seen.rows).toHaveLength(1);
+    const both = await t.as("authenticated", alice, (q) => q("select id from materials where title in ('First try', 'Try it')"));
+    expect(both.rows).toHaveLength(2);
 
     const again = await t.as("authenticated", bob, (q) => q<{ id: string | null }>("select claim_draft_material($1) as id", [draftToken]));
     expect(again.rows[0]!.id).toBeNull();

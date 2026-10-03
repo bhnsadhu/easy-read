@@ -109,7 +109,8 @@ create table public.materials (
   id uuid primary key default gen_random_uuid(),
   teacher_id uuid references public.teachers (id) on delete cascade,
   -- Owned by an anonymous "try it" session until claimed at sign-in. Server-only.
-  draft_token text unique,
+  -- One session can own many drafts, so this is indexed but not unique.
+  draft_token text,
   class_id uuid references public.classes (id) on delete set null,
   title text not null default 'Untitled' check (char_length(title) <= 200),
   source_type public.source_type not null,
@@ -140,6 +141,7 @@ create table public.materials (
 create index materials_teacher_idx on public.materials (teacher_id);
 create index materials_class_idx on public.materials (class_id, position);
 create index materials_hash_idx on public.materials (teacher_id, content_hash);
+create index materials_draft_idx on public.materials (draft_token) where draft_token is not null;
 
 create trigger materials_updated before update on public.materials
   for each row execute function public.set_updated_at();
@@ -328,7 +330,8 @@ returns jsonb language sql stable security definer set search_path = public as $
   where m.share_token = p_token and m.status = 'published';
 $$;
 
--- Called by a signed-in teacher to take ownership of a "try it" draft.
+-- Called by a signed-in teacher to take ownership of every "try it" draft
+-- from their anonymous session. Returns the most recent one.
 create or replace function public.claim_draft_material(p_draft_token text)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare
@@ -337,10 +340,13 @@ begin
   if auth.uid() is null then
     raise exception 'not signed in' using errcode = '42501';
   end if;
-  update public.materials
-    set teacher_id = auth.uid(), draft_token = null
-    where draft_token = p_draft_token and teacher_id is null
-    returning id into mid;
+  with claimed as (
+    update public.materials
+      set teacher_id = auth.uid(), draft_token = null
+      where draft_token = p_draft_token and teacher_id is null
+      returning id, created_at
+  )
+  select id into mid from claimed order by created_at desc limit 1;
   return mid;
 end $$;
 

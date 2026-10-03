@@ -241,7 +241,9 @@ export class MockProvider implements LlmProvider {
     const isAssignment = /\b(answer the|complete the|write a|submit|due|turn in|fill in|instructions?:)\b/i.test(allText);
     const tldr = task.wants.tldr
       ? task.sections.slice(0, 3).map((s) => {
-          const first = s.text.split(/(?<=[.!?])\s+/)[0] ?? s.text;
+          // Skip heading-like lines (no sentence punctuation) and take the first real sentence.
+          const line = s.text.split("\n").map((l) => l.trim()).find((l) => /[.!?]/.test(l)) ?? s.text;
+          const first = line.split(/(?<=[.!?])\s+/)[0] ?? line;
           return first.split(/\s+/).slice(0, 18).join(" ").replace(/[,;:]$/, "").replace(/[.!?]?$/, ".");
         })
       : [];

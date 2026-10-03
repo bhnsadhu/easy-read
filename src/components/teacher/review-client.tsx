@@ -112,7 +112,7 @@ export function ReviewClient({ material, sections, signedIn, classes, appUrl }: 
                 <h2 className="text-sm font-bold text-ink-muted">Words to know</h2>
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {material.wordPreview.map((w) => (
-                    <li key={w.word} className="rounded-md bg-surface-sunken px-2 py-1 text-sm"><span className="font-bold">{w.word}</span> <span className="text-ink-muted">{w.syllables.join("·")}</span>{w.definition ? "" : <span className="ml-1 text-warning">· teacher should define</span>}</li>
+                    <li key={w.word} className="rounded-md bg-surface-sunken px-2 py-1 text-sm"><span className="font-bold">{w.word}</span> <span className="text-ink-muted">{w.syllables.join("·")}</span>{w.definition ? <span className="ml-1 text-ink-muted">— {w.definition}</span> : <span className="ml-1 text-warning">— teacher should define</span>}</li>
                   ))}
                 </ul>
               </div>

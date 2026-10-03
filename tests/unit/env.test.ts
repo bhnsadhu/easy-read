@@ -16,7 +16,7 @@ describe("env parsing", () => {
     process.env.NEXT_PUBLIC_APP_URL = "";
     vi.resetModules();
     const env = await import("@/lib/env");
-    expect(env.serverEnv().DAILY_GENERATION_CAP).toBe(40);
+    expect(env.serverEnv().DAILY_GENERATION_CAP).toBe(0);
     expect(env.serverEnv().MAX_UPLOAD_MB).toBe(25);
     expect(env.isMockDb()).toBe(true);
     expect(env.isMockLlm()).toBe(true);
